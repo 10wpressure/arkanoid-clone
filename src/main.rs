@@ -7,7 +7,7 @@ use crate::block::Block;
 use crate::player::Player;
 use macroquad::prelude::*;
 
-#[macroquad::main("arcanoid")]
+#[macroquad::main("arkanoid")]
 async fn main() {
     // create game objects
     let mut player = Player::new();
