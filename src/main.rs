@@ -8,11 +8,25 @@ use crate::player::Player;
 use macroquad::prelude::*;
 
 fn resolve_collision(a: &mut Rect, vel: &mut Vec2, b: &Rect) -> bool {
-    if let Some(_intersection) = a.intersect(*b) {
-        vel.y *= -1f32;
-        return true;
+    if let Some(intersection) = a.intersect(*b) {
+       let a_center = a.point() + a.size() * 0.5f32;
+       let b_center = b.point() + b.size() * 0.5f32;
+       let to = b_center - a_center;
+       let to_signum = to.signum();
+       match intersection.w > intersection.h {
+        true => {
+          // bounce on y
+          a.y -= to_signum.y * intersection.h;
+          vel.y += to_signum.y * vel.y.abs();
+        }
+        false => {
+          // bounce on x
+          a.x -= to_signum.x * intersection.w;
+          vel.x = -to_signum.x * vel.x.abs();
+        }
     }
-    false
+  }
+  true
 }
 
 #[macroquad::main("arkanoid")]
