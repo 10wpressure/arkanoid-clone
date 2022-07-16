@@ -3,9 +3,9 @@ use macroquad::prelude::*;
 pub(crate) const BLOCK_SIZE: Vec2 = const_vec2!([100f32, 40f32]);
 
 pub(crate) struct Block {
-    rect: Rect,
-    size: Vec2,
-    lives: i32,
+    pub rect: Rect,
+    pub size: Vec2,
+    pub lives: i32,
 }
 
 impl Block {

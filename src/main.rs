@@ -7,6 +7,14 @@ use crate::block::Block;
 use crate::player::Player;
 use macroquad::prelude::*;
 
+fn resolve_collision(a: &mut Rect, vel: &mut Vec2, b: &Rect) -> bool {
+    if let Some(_intersection) = a.intersect(*b) {
+        vel.y *= -1f32;
+        return true;
+    }
+    false
+}
+
 #[macroquad::main("arkanoid")]
 async fn main() {
     // create game objects
@@ -37,7 +45,7 @@ async fn main() {
     )));
 
     loop {
-        if is_key_down(KeyCode::Space) {
+        if is_key_pressed(KeyCode::Space) {
             balls.push(Ball::new(vec2(
                 screen_width() * 0.5f32,
                 screen_height() * 0.5f32,
@@ -49,6 +57,20 @@ async fn main() {
         for ball in balls.iter_mut() {
             ball.update(get_frame_time());
         }
+
+        // collision detection
+        for ball in balls.iter_mut() {
+          resolve_collision(&mut ball.rect, &mut ball.vel, &player.rect);
+
+          for block in blocks.iter_mut() {
+            if resolve_collision(&mut ball.rect, &mut ball.vel,  &block.rect) {
+              block.lives -= 1;
+            }
+          }
+        }
+
+        // block deletion
+        blocks.retain(|block| block.lives > 0);
 
         clear_background(WHITE);
         player.draw();

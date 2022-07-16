@@ -4,8 +4,8 @@ const BALL_SIZE: f32 = 50f32;
 const BALL_SPEED: f32 = 400f32;
 
 pub struct Ball {
-    rect: Rect,
-    vel: Vec2,
+    pub rect: Rect,
+    pub vel: Vec2,
     speed: f32,
     size: f32,
 }
@@ -36,13 +36,5 @@ impl Ball {
 
     pub fn draw(&self) {
         draw_rectangle(self.rect.x, self.rect.y, self.rect.w, self.rect.h, RED);
-    }
-
-    pub fn resolve_collision(a: &mut Rect, vel: &mut Vec2, b: &Rect) -> bool {
-      if let Some(_intersection) = a.intersect(*b) {
-        vel.y *= -1f32;
-        return true;
-      }
-      false
     }
 }
