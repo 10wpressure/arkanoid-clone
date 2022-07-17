@@ -6,7 +6,7 @@ mod collision;
 mod text;
 
 use macroquad::prelude::*;
-use crate::ball::Ball;
+use crate::ball::{Ball, BALL_SIZE};
 use crate::block::{Block, BlockType};
 use crate::player::Player;
 use crate::collision::resolve_collision;
@@ -50,7 +50,15 @@ fn reset_game(blocks: &mut Vec<Block>, balls: &mut Vec<Ball>, player: &mut Playe
     *player = Player::new();
     balls.clear();
     blocks.clear();
-    init_blocks(blocks)
+    init_blocks(blocks);
+    create_ball(balls);
+}
+
+fn create_ball(balls: &mut Vec<Ball>) {
+    balls.push(Ball::new(vec2(
+        screen_width() * 0.5f32,
+        screen_height() * 0.5f32,
+    )));
 }
 
 
@@ -66,12 +74,6 @@ async fn main() {
     let text = GameText::new(font);
 
     init_blocks(&mut blocks);
-
-    // create balls
-    balls.push(Ball::new(vec2(
-        screen_width() * 0.5f32,
-        screen_height() * 0.5f32,
-    )));
 
     loop {
         match game_state {
@@ -101,13 +103,13 @@ async fn main() {
                 text.draw_score_text(player.score);
                 text.draw_lives_text(player.lives);
 
-                // spawn another ball
-                if is_key_pressed(KeyCode::Space) {
-                    balls.push(Ball::new(vec2(
-                        screen_width() * 0.5f32,
-                        screen_height() * 0.5f32,
-                    )));
-                }
+                // // spawn another ball
+                // if is_key_pressed(KeyCode::Space) {
+                //     balls.push(Ball::new(vec2(
+                //         screen_width() * 0.5f32,
+                //         screen_height() * 0.5f32,
+                //     )));
+                // }
 
                 // player animation
                 player.update(get_frame_time());
@@ -127,10 +129,7 @@ async fn main() {
                             if block.lives <= 0 {
                                 player.score += 10;
                                 if block.block_type == BlockType::SpawnBallOnDeletion {
-                                    spawn_later.push(Ball::new(vec2(
-                                    screen_width() * 0.5f32,
-                                    screen_height() * 0.5f32,
-                                    )));
+                                    spawn_later.push(Ball::new(ball.rect.point()));
                                 }
                             }
                         }
@@ -142,13 +141,14 @@ async fn main() {
 
                 // block deletion
                 let balls_len = balls.len();
-                let was_last_ball = balls_len == 1;
                 balls.retain(|ball| ball.rect.y < screen_height());
 
                 // balls deletion, player lives check
                 let removed_balls = balls_len - balls.len();
-                if removed_balls > 0 && was_last_ball {
+                if removed_balls > 0 && balls.is_empty() {
                     player.lives -= 1;
+                    balls.push(Ball::new(player.rect.point() + vec2(
+                        player.rect.w*0.5f32 + BALL_SIZE * 0.5f32, -50f32)))
                 }
 
                 // game over condition
