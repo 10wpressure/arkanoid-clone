@@ -1,5 +1,4 @@
 use macroquad::prelude::*;
-use macroquad::Window;
 
 pub struct GameText {
     pub font: Font,
