@@ -1,37 +1,26 @@
 mod ball;
 mod block;
 mod player;
+mod game;
+mod collision;
+mod text;
+
+use macroquad::prelude::*;
 
 use crate::ball::Ball;
 use crate::block::Block;
 use crate::player::Player;
-use macroquad::prelude::*;
-
-fn resolve_collision(a: &mut Rect, vel: &mut Vec2, b: &Rect) -> bool {
-    if let Some(intersection) = a.intersect(*b) {
-       let a_center = a.point() + a.size() * 0.5f32;
-       let b_center = b.point() + b.size() * 0.5f32;
-       let to = b_center - a_center;
-       let to_signum = to.signum();
-       match intersection.w > intersection.h {
-        true => {
-          // bounce on y
-          a.y -= to_signum.y * intersection.h;
-          vel.y += to_signum.y * vel.y.abs();
-        }
-        false => {
-          // bounce on x
-          a.x -= to_signum.x * intersection.w;
-          vel.x = -to_signum.x * vel.x.abs();
-        }
-    }
-  }
-  true
-}
+use crate::collision::resolve_collision;
+use crate::game::GameState;
+use crate::text::GameText;
 
 #[macroquad::main("arkanoid")]
 async fn main() {
     // create game objects
+    let font = load_ttf_font("res/game-over.regular.ttf").await.unwrap();
+
+    let mut game_state = GameState::Menu;
+    let mut score = 0;
     let mut player = Player::new();
     let mut blocks: Vec<Block> = Vec::new();
     let mut balls: Vec<Ball> = Vec::new();
@@ -44,6 +33,7 @@ async fn main() {
         (screen_width() - (total_block_size.x * width as f32)) * 0.5f32,
         50f32,
     );
+    let text = GameText::new(font);
 
     // create blocks
     for i in 0..width * height {
@@ -59,41 +49,97 @@ async fn main() {
     )));
 
     loop {
-        if is_key_pressed(KeyCode::Space) {
-            balls.push(Ball::new(vec2(
-                screen_width() * 0.5f32,
-                screen_height() * 0.5f32,
-            )));
-        }
-
-        player.update(get_frame_time());
-
-        for ball in balls.iter_mut() {
-            ball.update(get_frame_time());
-        }
-
-        // collision detection
-        for ball in balls.iter_mut() {
-          resolve_collision(&mut ball.rect, &mut ball.vel, &player.rect);
-
-          for block in blocks.iter_mut() {
-            if resolve_collision(&mut ball.rect, &mut ball.vel,  &block.rect) {
-              block.lives -= 1;
+        match game_state {
+            GameState::Menu => {
+                clear_background(BLACK);
+                text.draw_title_text("Press SPACE to start", WHITE);
+                if is_key_pressed(KeyCode::Space) {
+                    game_state = GameState::GameIsRunning;
+                }
             }
-          }
+            GameState::GameIsRunning => {
+                clear_background(WHITE);
+
+                // draw player
+                player.draw();
+                // draw blocks
+                for block in blocks.iter() {
+                    block.draw();
+                }
+                // draw balls
+                for ball in balls.iter_mut() {
+                    ball.draw();
+                }
+                // draw UI
+                text.draw_score_text(score);
+                text.draw_lives_text(player.lives);
+
+                // spawn another ball
+                if is_key_pressed(KeyCode::Space) {
+                    balls.push(Ball::new(vec2(
+                        screen_width() * 0.5f32,
+                        screen_height() * 0.5f32,
+                    )));
+                }
+
+                // player animation
+                player.update(get_frame_time());
+
+                // balls animation
+                for ball in balls.iter_mut() {
+                    ball.update(get_frame_time());
+                }
+
+                // collision detection
+                for ball in balls.iter_mut() {
+                    resolve_collision(&mut ball.rect, &mut ball.vel, &player.rect);
+
+                    for block in blocks.iter_mut() {
+                        if resolve_collision(&mut ball.rect, &mut ball.vel, &block.rect) {
+                            block.lives -= 1;
+                            if block.lives <= 0 {
+                                score += 10;
+                            }
+                        }
+                    }
+                }
+
+                // block deletion
+                let balls_len = balls.len();
+                let was_last_ball = balls_len == 1;
+                balls.retain(|ball| ball.rect.y < screen_height());
+
+                // balls deletion, player lives check
+                let removed_balls = balls_len - balls.len();
+                if removed_balls > 0 && was_last_ball {
+                    player.lives -= 1;
+                }
+
+                // game over condition
+                if player.lives <= 0 {
+                    player.lives = 0;
+                    game_state = GameState::GameOver;
+                }
+
+                // victory condition
+                if blocks.is_empty() {
+                    game_state = GameState::LevelCompleted;
+                }
+                blocks.retain(|block| block.lives > 0);
+            }
+            GameState::LevelCompleted => {
+                clear_background(WHITE);
+                text.draw_title_text(&format!("You WON! {} score", score), BLACK);
+            }
+            GameState::GameOver => {
+                clear_background(WHITE);
+                text.draw_title_text(&format!("You LOST! {} score", score), BLACK);
+            }
         }
 
-        // block deletion
-        blocks.retain(|block| block.lives > 0);
 
-        clear_background(WHITE);
-        player.draw();
-        for block in blocks.iter() {
-            block.draw();
-        }
-        for ball in balls.iter_mut() {
-            ball.draw();
-        }
+
+
         next_frame().await;
     }
 }

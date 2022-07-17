@@ -4,7 +4,8 @@ const PLAYER_SIZE: Vec2 = const_vec2!([150f32, 40f32]);
 const PLAYER_SPEED: f32 = 700f32;
 
 pub(crate) struct Player {
-    pub rect: Rect
+    pub rect: Rect,
+    pub lives: i32,
 }
 
 impl Player {
@@ -16,6 +17,7 @@ impl Player {
                 PLAYER_SIZE.x,
                 PLAYER_SIZE.y,
             ),
+            lives: 3,
         }
     }
 
