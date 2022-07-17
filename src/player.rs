@@ -24,7 +24,7 @@ impl Player {
     }
 
     pub fn draw(&self) {
-        draw_rectangle(self.rect.x, self.rect.y, self.rect.w, self.rect.h, DARKGRAY);
+        draw_rectangle(self.rect.x, self.rect.y, self.rect.w, self.rect.h, YELLOW);
     }
 
     pub fn update(&mut self, dt: f32) {
