@@ -6,6 +6,7 @@ const PLAYER_SPEED: f32 = 700f32;
 pub(crate) struct Player {
     pub rect: Rect,
     pub lives: i32,
+    pub score: i32,
 }
 
 impl Player {
@@ -18,6 +19,7 @@ impl Player {
                 PLAYER_SIZE.y,
             ),
             lives: 3,
+            score: 0,
         }
     }
 
@@ -42,5 +44,12 @@ impl Player {
         if self.rect.x > screen_width() - self.rect.w {
             self.rect.x = screen_width() - self.rect.w;
         }
+    }
+
+    pub fn reset(&mut self) {
+        self.rect.x = screen_width() * 0.5f32 - PLAYER_SIZE.x * 0.5f32;
+        self.rect.y = screen_height() - 100f32;
+        self.lives = 3;
+        self.score = 0;
     }
 }

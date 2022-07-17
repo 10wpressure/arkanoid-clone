@@ -20,7 +20,6 @@ async fn main() {
     let font = load_ttf_font("res/game-over.regular.ttf").await.unwrap();
 
     let mut game_state = GameState::Menu;
-    let mut score = 0;
     let mut player = Player::new();
     let mut blocks: Vec<Block> = Vec::new();
     let mut balls: Vec<Ball> = Vec::new();
@@ -55,6 +54,13 @@ async fn main() {
                 text.draw_title_text("Press SPACE to start", WHITE);
                 if is_key_pressed(KeyCode::Space) {
                     game_state = GameState::GameIsRunning;
+                    clear_background(WHITE);
+                    for i in 0..width * height {
+                        let block_x = (i % width) as f32 * total_block_size.x;
+                        let block_y = (i / width) as f32 * total_block_size.y;
+                        blocks.push(Block::new(board_start_pos + vec2(block_x, block_y)));
+                    }
+                    player.reset();
                 }
             }
             GameState::GameIsRunning => {
@@ -71,7 +77,7 @@ async fn main() {
                     ball.draw();
                 }
                 // draw UI
-                text.draw_score_text(score);
+                text.draw_score_text(player.score);
                 text.draw_lives_text(player.lives);
 
                 // spawn another ball
@@ -98,7 +104,7 @@ async fn main() {
                         if resolve_collision(&mut ball.rect, &mut ball.vel, &block.rect) {
                             block.lives -= 1;
                             if block.lives <= 0 {
-                                score += 10;
+                                player.score += 10;
                             }
                         }
                     }
@@ -129,11 +135,19 @@ async fn main() {
             }
             GameState::LevelCompleted => {
                 clear_background(WHITE);
-                text.draw_title_text(&format!("You WON! {} score", score), BLACK);
+                text.draw_title_text(&format!("You WON! {} score", player.score), BLACK);
+                if is_key_pressed(KeyCode::Space) {
+                    game_state = GameState::Menu;
+                    player.reset();
+                }
             }
             GameState::GameOver => {
                 clear_background(WHITE);
-                text.draw_title_text(&format!("You LOST! {} score", score), BLACK);
+                text.draw_title_text(&format!("You LOST! {} score", player.score), BLACK);
+                if is_key_pressed(KeyCode::Space) {
+                    game_state = GameState::Menu;
+                    player.reset();
+                }
             }
         }
 
