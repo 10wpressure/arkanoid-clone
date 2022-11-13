@@ -1,30 +1,36 @@
 mod ball;
 mod block;
-mod player;
-mod game;
 mod collision;
+mod game;
+mod player;
 mod text;
 
-use macroquad::prelude::*;
 use crate::ball::{Ball, BALL_SIZE};
 use crate::block::{Block, BlockType};
-use crate::player::Player;
 use crate::collision::resolve_collision;
-use crate::game::{GameState};
+use crate::game::GameState;
+use crate::player::Player;
 use crate::text::GameText;
+use macroquad::prelude::*;
 
 fn init_blocks(blocks: &mut Vec<Block>) {
     // initialize level settings
     let (width, height) = (6, 6);
     let padding = 5f32;
     let total_block_size = Block::size() + vec2(padding, padding);
-    let board_start_pos = vec2((screen_width() - (total_block_size.x * width as f32)) * 0.5f32, 50f32);
+    let board_start_pos = vec2(
+        (screen_width() - (total_block_size.x * width as f32)) * 0.5f32,
+        50f32,
+    );
 
     // create blocks
     for i in 0..width * height {
         let block_x = (i % width) as f32 * total_block_size.x;
         let block_y = (i / width) as f32 * total_block_size.y;
-        blocks.push(Block::new(board_start_pos + vec2(block_x, block_y), BlockType::Regular));
+        blocks.push(Block::new(
+            board_start_pos + vec2(block_x, block_y),
+            BlockType::Regular,
+        ));
     }
 
     // choose spawn ball blocks
@@ -60,7 +66,6 @@ fn create_ball(balls: &mut Vec<Ball>) {
         screen_height() * 0.5f32,
     )));
 }
-
 
 #[macroquad::main("arkanoid")]
 async fn main() {
@@ -147,8 +152,10 @@ async fn main() {
                 let removed_balls = balls_len - balls.len();
                 if removed_balls > 0 && balls.is_empty() {
                     player.lives -= 1;
-                    balls.push(Ball::new(player.rect.point() + vec2(
-                        player.rect.w*0.5f32 + BALL_SIZE * 0.5f32, -50f32)))
+                    balls.push(Ball::new(
+                        player.rect.point()
+                            + vec2(player.rect.w * 0.5f32 + BALL_SIZE * 0.5f32, -50f32),
+                    ))
                 }
 
                 // game over condition

@@ -1,8 +1,8 @@
 use macroquad::prelude::*;
 
-pub(crate) const BLOCK_SIZE: Vec2 = const_vec2!([100f32, 40f32]);
+pub(crate) const BLOCK_SIZE: Vec2 = Vec2::from_array([100f32, 40f32]);
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum BlockType {
     Regular,
     SpawnBallOnDeletion,
@@ -12,7 +12,7 @@ pub enum BlockType {
 
 pub(crate) struct Block {
     pub rect: Rect,
-    pub size: Vec2,
+    pub _size: Vec2,
     pub lives: i32,
     pub block_type: BlockType,
 }
@@ -25,7 +25,7 @@ impl Block {
     pub fn new(pos: Vec2, block_type: BlockType) -> Self {
         Self {
             rect: Rect::new(pos.x, pos.y, BLOCK_SIZE.x, BLOCK_SIZE.y),
-            size: BLOCK_SIZE,
+            _size: BLOCK_SIZE,
             lives: 2,
             block_type,
         }
